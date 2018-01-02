@@ -10,17 +10,15 @@ source("src/PreProcessingReviews.R")
 
 ## importaing library to perform the prediction tasks
 library("caret")
-library("DMwR") # balance training dataset
 library("wordnet")
 
 ReviewsCleaned <- CleaningReviews(dataset = opinions$rewiew,
                            RemoveSw = TRUE, StemDoc = TRUE)
-
-review.dtm <- t(as.matrix(TermDocumentMatrix(ReviewsCleaned)))
-class(review.dtm[1,1])
-dim(review.dtm) # 542 1045
+review.dtm <- t(as.matrix(TermDocumentMatrix(ReviewsCleaned,
+                                 control = list(weighing = weightTfIdf))))
 pol <- as.matrix(opinions$polarity[which(duplicated(opinions$rewiew) == FALSE)])
 review.dtm <- data.frame(review.dtm, pol)
+
 ## c'est un problème d'apprentissage sur des classes déséquilibrées
 pol.nb <- table(pol)
 pol.prop <- prop.table(pol.nb)
@@ -39,15 +37,16 @@ dim(review.train) ## 434 1046
 review.test <- review.dtm[-review.train.index,]
 dim(review.test) ## 108 1046
 
-pol.nb <- table(review.dtm$pol)
+pol.nb <- table(review.train$pol)
 pol.prop <- prop.table(pol.nb)
 layout(matrix(1:2, nrow = 1, ncol = 2))
 barplot(pol.nb, main = "nombre d'occurence des avis positifs et négatifs")
 barplot(pol.prop, main = "proportions des avis positif et négatifs")
 layout(matrix(1, nrow = 1, ncol = 1))
 
-resamp1 <- SMOTE(pol ~ ., data = review.dtm, K = 5)
-dim(resamp1)
+## SMOTE
+library("DMwR") # balance training dataset
+resamp1 <- SMOTE(pol ~ ., data = review.train, K = 5)
 pol.nb <- table(resamp1$pol)
 pol.prop <- prop.table(pol.nb)
 layout(matrix(1:2, nrow = 1, ncol = 2))
@@ -55,13 +54,43 @@ barplot(pol.nb, main = "nombre d'occurence des avis positifs et négatifs")
 barplot(pol.prop, main = "proportions des avis positif et négatifs")
 layout(matrix(1, nrow = 1, ncol = 1))
 
-#### Lemmatisation, à voir plus tard ####
-# x.filter <- getTermFilter("ExactMatchFilter", ReviewsCleaned[[1]], TRUE)
-# terms <- getIndexTerms("NOUN", 1, x.filter)
-# sapply(terms, getLemma)
+## ADASYN
+library("smotefamily")
+review.train2 <- review.train
+review.train2$pol <- as.numeric(as.factor(review.train$pol))
+resamp2 <- ADAS(X = review.train[,-1046],
+     target = review.train[,1046],
+     K = 5)
+pol.nb <- table(resamp2$data$class)
+pol.prop <- prop.table(pol.nb)
+layout(matrix(1:2, nrow = 1, ncol = 2))
+barplot(pol.nb, main = "nombre d'occurence des avis positifs et négatifs")
+barplot(pol.prop, main = "proportions des avis positif et négatifs")
+layout(matrix(1, nrow = 1, ncol = 1))
+adasyned.reviews <- resamp2$data
 
-# TagReviews <- treetag(ReviewsCleaned, lang = "en" ,TT.tknz = TRUE)
-# toto <- lapply(ReviewsCleaned$content, function(x) {
+
+#### Lemmatisation, à voir plus tard ####
+library("wordnet")
+library("koRpus") # Part of speech tagging pour la lemmatisation
+
+ReviewsCleaned <- CleaningReviews(dataset = opinions$rewiew,
+                                  RemoveSw = FALSE, StemDoc = FALSE)
+ReviewsCleaned[[1]]$content
+split.review <- unlist(strsplit(x = ReviewsCleaned[[1]]$content,
+                                split = " "))
+##koRpus approach with treetag
+tag.reviews <- treetag(ReviewsCleaned[[1]]$content, treetagger = "manual", lang = "en",
+                       TT.options = list(path = "~/Treetagger",
+                                         preset = "en"),
+                       format = "obj", stemmer = tm::stemDocument,
+                       stopwords = tm::stopwords("en"))
+# pense à faire une liste de stopwords customisés ou regarder les dico données par Erwan
+tag.reviews@TT.res$lemma[-which(tag.reviews@TT.res$stop == TRUE)]
+
+
+## wordnet approach
+# test <- lapply(split.review, function(x){
 #   x.filter <- getTermFilter("ExactMatchFilter", x, TRUE)
 #   terms <- getIndexTerms("NOUN", 1, x.filter)
 #   sapply(terms, getLemma)
