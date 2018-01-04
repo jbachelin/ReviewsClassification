@@ -4,13 +4,15 @@
 # Statistiques sur le jeu de données
 
 source("src/DataLoading.R")
+source("src/PreProcessingReviews.R")
 library("wordcloud")
 library("RColorBrewer")
 library("tm")
 library("NLP")
 library(SnowballC)
+library(koRpus)
 
-length(unique(opinions$rewiew)) # 542 avis differents dans le jeu d'entrainement après filtrage dont :
+length(unique(opinions$review)) # 542 avis differents dans le jeu d'entrainement après filtrage dont :
 
 length(which(opinions$polarity == "positive")) # 408 contenant un avis positif
 length(which(opinions$polarity == "negative")) # 136 contenant un avis negatif
@@ -20,11 +22,7 @@ length(which(opinions$polarity == "negative")) # 136 contenant un avis negatif
 length(unique(opinions$category)) # 12 catégories d'avis differentes dans le jeu d'entrainement (y compris NA)
 
 # Pretraitement des avis
-reviews <- as.matrix(unique(opinions$rewiew))
-review.corpus <- Corpus(VectorSource(reviews))
-review.corpus <- tm_map(review.corpus, content_transformer(tolower)) # Mise en minuscule
-review.corpus <- tm_map(review.corpus, removeNumbers) # Suppression des nombres
-review.corpus <- tm_map(review.corpus, removePunctuation) # Suppression de la ponctuation
+review.corpus <- CleaningReviews(opinions$review)
 inspect(review.corpus[1])
 
 # Approche fréquentiste des mots presents dans les avis (sans mots-outils seulement)

@@ -2,21 +2,21 @@
 ## Date : 30/12/2017
 ## Desc : Predicting Polarity in the un balanced data set of reviews
 
-rm(list = ls())
+# rm(list = ls())
 
 ## importing data
 source("src/DataLoading.R")
 source("src/PreProcessingReviews.R")
 
 ## importaing library to perform the prediction tasks
-library("caret")
+library("caret") # https://topepo.github.io/caret/available-models.html
 library("wordnet")
 
-ReviewsCleaned <- CleaningReviews(dataset = opinions$rewiew,
+ReviewsCleaned <- CleaningReviews(dataset = opinions$review,
                            RemoveSw = TRUE, StemDoc = TRUE)
 review.dtm <- t(as.matrix(TermDocumentMatrix(ReviewsCleaned,
                                  control = list(weighing = weightTfIdf))))
-pol <- as.matrix(opinions$polarity[which(duplicated(opinions$rewiew) == FALSE)])
+pol <- as.matrix(opinions$polarity[which(duplicated(opinions$review) == FALSE)])
 review.dtm <- data.frame(review.dtm, pol)
 
 ## c'est un problème d'apprentissage sur des classes déséquilibrées
@@ -54,6 +54,16 @@ barplot(pol.nb, main = "nombre d'occurence des avis positifs et négatifs")
 barplot(pol.prop, main = "proportions des avis positif et négatifs")
 layout(matrix(1, nrow = 1, ncol = 1))
 
+# Split new dataset
+
+review.train.reeq.index <- createDataPartition(resamp1$pol,
+                                               times = 1, p = 0.8, list = FALSE)
+review.train.reeq <- resamp1[review.train.reeq.index,]
+dim(review.train.reeq) ## 611 1264
+
+review.test.reeq <- resamp1[-review.train.reeq.index,]
+dim(review.test.reeq) ## 152 1264
+
 ## ADASYN
 library("smotefamily")
 review.train2 <- review.train
@@ -74,7 +84,7 @@ adasyned.reviews <- resamp2$data
 library("wordnet")
 library("koRpus") # Part of speech tagging pour la lemmatisation
 
-ReviewsCleaned <- CleaningReviews(dataset = opinions$rewiew,
+ReviewsCleaned <- CleaningReviews(dataset = opinions$review,
                                   RemoveSw = FALSE, StemDoc = FALSE)
 ReviewsCleaned[[1]]$content
 split.review <- unlist(strsplit(x = ReviewsCleaned[[1]]$content,
