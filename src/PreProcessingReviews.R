@@ -29,7 +29,9 @@ CleaningReviews <- function(dataset, RemoveSw = FALSE, StemDoc = FALSE)
   # l'algorithme de porter est utilisé pas défaut
   if (isTRUE(StemDoc)) review.corpus <- tm_map(review.corpus, wordStem, language = "english")
 
-    return(review.corpus)
+  review.corpus <- tm_map(review.corpus, stripWhitespace) # Suppression des espaces en trop
+  
+  return(review.corpus)
 }
 
 ## Fonction qui lemmatise les avis du corpus et réalise PoS
@@ -77,4 +79,3 @@ SpellChecker <- function(ToCheck)
   
   return(unlist(ToCheck))
 }
-
