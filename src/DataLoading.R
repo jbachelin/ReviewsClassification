@@ -10,13 +10,6 @@ library(dplyr)
 data <- xmlParse("data/train_2017.xml")
 xml_data <- xmlToList(data)
 
-# reviews <- matrix(0, length(xml_data))
-# target <- matrix(0, length(xml_data))
-# category <- matrix(0, length(xml_data))
-# polarity <- matrix(0, length(xml_data))
-# from <- matrix(0, length(xml_data))
-# to <- matrix(0, length(xml_data))
-
 filldf <- function(xml_data, opinions){
   for (cell in 1:length(xml_data))
   {
@@ -51,7 +44,7 @@ filldf <- function(xml_data, opinions){
   opinions
 }
 
-opinions <- data.frame(rewiew = character(0),
+opinions <- data.frame(review = character(0),
                        target = character(0),
                        category = character(0),
                        polarity = character(0),
@@ -64,5 +57,5 @@ opinions <- filldf(xml_data, opinions)
 opinions <- opinions[, -2] # On retire la variable "target"
 opinions <- opinions[-which(opinions$polarity == "neutral" | is.na(opinions$polarity)),] # On ne prend pas en consideration les polarites neutres ou manquantes
 
-# test <- opinions
-# test <- aggregate(. ~ test$rewiew, test, list)
+# opinions$polarity <- as.factor(opinions$polarity)
+# opinions$polarity <- as.numeric(opinions$polarity)
