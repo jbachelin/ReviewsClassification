@@ -15,7 +15,7 @@ library("hunspell") # spell checking
 ##    l'ensemble des commentaires nettoyés
 ## NOTE :  l'implémentation s'est inspirée de l'esprit de la fonction "SMOTE" du package DMwR,
 ##         cependant certaines tâche ont été adaptées aux données de grand volume
-CleaningReviews <- function(dataset, RemoveSw = FALSE, StemDoc = FALSE)
+CleaningReviews <- function(dataset, RemoveSw = FALSE, ExceptionVector = NULL, StemDoc = FALSE)
 {
   
   
@@ -25,7 +25,13 @@ CleaningReviews <- function(dataset, RemoveSw = FALSE, StemDoc = FALSE)
   review.corpus <- tm_map(review.corpus, removeNumbers) # Suppression des nombres
   review.corpus <- tm_map(review.corpus, removePunctuation) # Suppression de la ponctuation
 
-  if (isTRUE(RemoveSw)) review.corpus <- tm_map(review.corpus, removeWords, stopwords('english'))
+  if (isTRUE(RemoveSw)) {
+    if (is.null(ExceptionVector)) CustomStopwords <- stopwords("en") else CustomStopwords <- setdiff(stopwords("en"),ExceptionVector)
+    review.corpus <- tm_map(review.corpus, removeWords, CustomStopwords)
+  }
+  
+  review.corpus <- lapply(review.corpus, FUN = str_negate)
+  
   # l'algorithme de porter est utilisé pas défaut
   if (isTRUE(StemDoc)) review.corpus <- tm_map(review.corpus, wordStem, language = "english")
 
@@ -45,7 +51,7 @@ CleaningReviews <- function(dataset, RemoveSw = FALSE, StemDoc = FALSE)
 LemmatizeReviews <- function(CorpusVector, ExceptionVector = NULL, RmStopwords = FALSE)
 {
   ## création de la liste stop words customisés
-  if (is.null(ExceptionVector)) CustomStopwords <- setdiff(stopwords("en"),ExceptionVector) 
+  if (is.null(ExceptionVector)) CustomStopwords <- stopwords("en") else CustomStopwords <- setdiff(stopwords("en"),ExceptionVector)
   LemmatizedCorpus <- lapply(CorpusVector, function(x){
     split.review <- unlist(strsplit(x = x, split = " "))
     split.review <- SpellChecker(ToCheck = split.review)
@@ -79,3 +85,13 @@ SpellChecker <- function(ToCheck)
   
   return(unlist(ToCheck))
 }
+
+str_negate <- function(x) {
+  str_split <- unlist(strsplit(x=x, split=" "))
+  is_negative <- grepl("not|n't",str_split,ignore.case=T)
+  negate_me <- append(FALSE,is_negative)[1:length(str_split)]
+  str_split[negate_me==T]<- paste0("not_",str_split[negate_me==T])
+  paste(str_split,collapse=" ")
+}
+
+str_negate(opinions$review[[1]])
