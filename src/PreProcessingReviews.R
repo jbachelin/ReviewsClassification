@@ -17,8 +17,6 @@ library("hunspell") # spell checking
 ##         cependant certaines tâche ont été adaptées aux données de grand volume
 CleaningReviews <- function(dataset, RemoveSw = FALSE, ExceptionVector = NULL, StemDoc = FALSE)
 {
-  
-  
   reviews <- as.matrix(unique(dataset))
   review.corpus <- Corpus(VectorSource(reviews))
   review.corpus <- tm_map(review.corpus, content_transformer(tolower)) # Mise en minuscule
@@ -26,11 +24,12 @@ CleaningReviews <- function(dataset, RemoveSw = FALSE, ExceptionVector = NULL, S
   review.corpus <- tm_map(review.corpus, removePunctuation) # Suppression de la ponctuation
 
   if (isTRUE(RemoveSw)) {
-    if (is.null(ExceptionVector)) CustomStopwords <- stopwords("en") else CustomStopwords <- setdiff(stopwords("en"),ExceptionVector)
+    if (is.null(ExceptionVector)) CustomStopwords <- stopwords("en") else CustomStopwords <- setdiff(stopwords("en"), ExceptionVector)
     review.corpus <- tm_map(review.corpus, removeWords, CustomStopwords)
   }
   
-  review.corpus <- lapply(review.corpus, FUN = str_negate)
+  # review.corpus <- unlist(lapply(review.corpus, FUN = str_negate))
+  # review.corpus <- Corpus(VectorSource(review.corpus))
   
   # l'algorithme de porter est utilisé pas défaut
   if (isTRUE(StemDoc)) review.corpus <- tm_map(review.corpus, wordStem, language = "english")
@@ -86,12 +85,15 @@ SpellChecker <- function(ToCheck)
   return(unlist(ToCheck))
 }
 
+## Fonction qui détecte une négation et qui ajoute le préfixe au mot suivant 
+## INPUT :
+##    x : chaine de caractères
+## OUTPUT :
+##    chaine de caractères avec les préfixes au mot suivant une négation
 str_negate <- function(x) {
   str_split <- unlist(strsplit(x=x, split=" "))
   is_negative <- grepl("not|n't",str_split,ignore.case=T)
   negate_me <- append(FALSE,is_negative)[1:length(str_split)]
   str_split[negate_me==T]<- paste0("not_",str_split[negate_me==T])
-  paste(str_split,collapse=" ")
+  paste0(str_split)
 }
-
-str_negate(opinions$review[[1]])

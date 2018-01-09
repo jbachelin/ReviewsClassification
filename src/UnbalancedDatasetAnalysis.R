@@ -1,6 +1,6 @@
 ## Authors : Eric HAMMEL & Jordan BACHELIN
 ## Date : 30/12/2017
-## Desc : Predicting Polarity in the un balanced data set of reviews
+## Desc : Predicting Polarity in the unbalanced data set of reviews
 
 # rm(list = ls())
 
@@ -46,7 +46,7 @@ layout(matrix(1, nrow = 1, ncol = 1))
 
 ## SMOTE
 library("DMwR") # balance training dataset
-resamp1 <- SMOTE(pol ~ ., data = review.train, K = 5)
+resamp1 <- DMwR::SMOTE(pol ~ ., data = review.train, K = 5)
 pol.nb <- table(resamp1$pol)
 pol.prop <- prop.table(pol.nb)
 layout(matrix(1:2, nrow = 1, ncol = 2))
@@ -64,11 +64,11 @@ dim(review.train.reeq) ## 611 1264
 review.test.reeq <- resamp1[-review.train.reeq.index,]
 dim(review.test.reeq) ## 152 1264
 
-## ADASYN
+## ADASYN (autre approche non utilisée par la suite)
 library("smotefamily")
 review.train2 <- review.train
 review.train2$pol <- as.numeric(as.factor(review.train$pol))
-resamp2 <- ADAS(X = review.train[,-1046],
+resamp2 <- smotefamily::ADAS(X = review.train[,-1046],
      target = review.train[,1046],
      K = 5)
 pol.nb <- table(resamp2$data$class)
@@ -78,30 +78,3 @@ barplot(pol.nb, main = "nombre d'occurence des avis positifs et négatifs")
 barplot(pol.prop, main = "proportions des avis positif et négatifs")
 layout(matrix(1, nrow = 1, ncol = 1))
 adasyned.reviews <- resamp2$data
-
-
-#### Lemmatisation, à voir plus tard ####
-library("wordnet")
-library("koRpus") # Part of speech tagging pour la lemmatisation
-
-ReviewsCleaned <- CleaningReviews(dataset = opinions$review,
-                                  RemoveSw = FALSE, StemDoc = FALSE)
-ReviewsCleaned[[1]]$content
-split.review <- unlist(strsplit(x = ReviewsCleaned[[1]]$content,
-                                split = " "))
-##koRpus approach with treetag
-tag.reviews <- treetag(ReviewsCleaned[[1]]$content, treetagger = "manual", lang = "en",
-                       TT.options = list(path = "~/Treetagger",
-                                         preset = "en"),
-                       format = "obj", stemmer = tm::stemDocument,
-                       stopwords = tm::stopwords("en"))
-# pense à faire une liste de stopwords customisés ou regarder les dico données par Erwan
-tag.reviews@TT.res$lemma[-which(tag.reviews@TT.res$stop == TRUE)]
-
-
-## wordnet approach
-# test <- lapply(split.review, function(x){
-#   x.filter <- getTermFilter("ExactMatchFilter", x, TRUE)
-#   terms <- getIndexTerms("NOUN", 1, x.filter)
-#   sapply(terms, getLemma)
-# })

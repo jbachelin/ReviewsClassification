@@ -19,7 +19,7 @@ length(which(opinions$polarity == "negative")) # 136 contenant un avis negatif
 # length(which(opinions$polarity == "neutral")) # [...] contenant un avis neutre
 
 # length(unique(opinions$target)) # 723 cibles differentes dans le jeu d'entrainement (y compris la cible NULL)
-length(unique(opinions$category)) # 12 catégories d'avis differentes dans le jeu d'entrainement (y compris NA)
+# length(unique(opinions$category)) # 12 catégories d'avis differentes dans le jeu d'entrainement (y compris NA)
 
 # Pretraitement des avis
 review.corpus <- CleaningReviews(opinions$review)
@@ -40,7 +40,7 @@ barplot(review.freq.sw.sorted[1:50], xlab = "Word", ylab = "Frequency", las = 2)
 # Nuage des mots du corpus (plus ou moins gros en fonction de leur frequence)
 wordcloud(review.corpus.sw, max.words = 200, colors = brewer.pal(8, "Dark2"))
 
-# Approche fréquentiste des mots presents dans les avis (avec stemming et TF/IDF cette fois)
+# Approche fréquentiste des mots presents dans les avis (avec stemming et TF/IDF en plus)
 review.corpus.stemmed <- tm_map(review.corpus.sw, stemDocument, language = "porter")
 message("Review without stemming:")
 review.corpus.sw[[1]]$content
