@@ -17,7 +17,8 @@ my_naive_bayes <- function(model, test){
   
   # DISPLAY RESULTS
   t <- table(predicted, test$polarity)
-  caret::confusionMatrix(t)
+  cm <- caret::confusionMatrix(t)
+  return(list(cm = cm, predicted = predicted))
 }
 
 # Régression logistique ####
@@ -33,7 +34,8 @@ my_rl <- function(model, test){
   
   # DISPLAY RESULTS
   res3 <- data.frame(predicted, polarity = test$polarity)
-  caret::confusionMatrix(data = res3$predicted, reference = res3$polarity)
+  cm <- caret::confusionMatrix(data = res3$predicted, reference = res3$polarity)
+  return(list(cm = cm, predicted = predicted))
 }
 
 # Classification avec un réseau de neurones ####
@@ -43,12 +45,12 @@ my_nn <- function(model, test){
   require(caret)
   
   # PREDICTION
-  res.ann = predict(model, test[, -which(names(resamp1) == "polarity")], type = "class")
+  res.ann = predict(model, test[, -which(names(test) == "polarity")], type = "class")
   
   # DISPLAY RESULTS
   t <- table(res.ann, test$polarity)
   cm <- caret::confusionMatrix(t)
-  cm
+  return(list(cm = cm, predicted = res.ann))
 }
 
 # SVM ####
@@ -63,5 +65,6 @@ my_svm <- function(model, test){
   
   # DISPLAY RESULTS
   t <- table(predicted.svm, test$polarity)
-  caret::confusionMatrix(t)
+  cm <- caret::confusionMatrix(t)
+  return(list(cm = cm, predicted = predicted.svm))
 }
