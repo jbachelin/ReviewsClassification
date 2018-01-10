@@ -1,5 +1,6 @@
 # Projet Text Mining ####
 # Auteurs : Jordan BACHELIN & Eric HAMMEL ####
+# Desc : Statistiques sur le jeu de données parsé
 
 # Statistiques sur le jeu de données
 

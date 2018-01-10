@@ -181,6 +181,7 @@ legend(0.5, 0.25, legend=c("RL simple", "RL avec réequilibrage", "RN simple", "
        col=c("black", "pink", "yellow", "red", "green", "blue"), lty=1, cex=0.8)
 
 # Aire sous la courbe (Area Under Curve)
+
 # AUC_res.nb <- auc(as.numeric(res.nb$predicted),as.numeric(review.test$polarity)) # Ne marche pas car une seule classe prédite à chaque fois
 # AUC_res.nb.reeq <- auc(as.numeric(res.nb.reeq$predicted),as.numeric(review.test$polarity)) # Idem
 AUC_res.rl <- auc(as.numeric(as.factor(res.rl$predicted)),as.numeric(review.test$polarity)) # Area under the curve: 0.8785
